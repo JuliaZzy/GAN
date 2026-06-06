@@ -10,6 +10,14 @@ services:
               count: 1
               capabilities: [gpu]
     volumes:
-      - ./weights:/app/weights   # shared between host venv and container
+      - ./weights:/app/weights
       - ./input:/app/input
       - ./output:/app/output
+
+  # One-time setup: download model weights into ./weights/
+  setup:
+    image: image-enhance:latest
+    entrypoint: python
+    command: setup_weights.py
+    volumes:
+      - ./weights:/app/weights
