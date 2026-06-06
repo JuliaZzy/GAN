@@ -1,0 +1,15 @@
+services:
+  enhance:
+    build: .
+    image: image-enhance:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./weights:/app/weights   # shared between host venv and container
+      - ./input:/app/input
+      - ./output:/app/output
