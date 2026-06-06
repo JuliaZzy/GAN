@@ -1,6 +1,6 @@
 """
 Image enhancement using Real-ESRGAN + GFPGAN.
-GPU: RTX 3090 (24GB) — runs without tiling, fp16 enabled.
+Auto-detects device: CUDA (NVIDIA) → MPS (Apple Silicon) → CPU.
 
 Usage:
     Single image:  python enhance.py -i blurry.jpg -o sharp.jpg
@@ -24,6 +24,32 @@ WEIGHT_ESRGAN_X2 = "weights/RealESRGAN_x2plus.pth"
 WEIGHT_GFPGAN    = "weights/GFPGANv1.3.pth"
 
 
+def detect_device() -> tuple[str, bool, str]:
+    """Returns (device, use_half, label) for the best available accelerator."""
+    import torch
+    if torch.cuda.is_available():
+        vram = torch.cuda.get_device_properties(0).total_memory / 1e9
+        return "cuda", True, f"{vram:.1f} GB VRAM"
+    if torch.backends.mps.is_available():
+        return "mps", False, "Apple Silicon (unified memory)"
+    return "cpu", False, "CPU only"
+
+
+def auto_tile(device: str) -> int:
+    import torch
+    if device == "cuda":
+        vram = torch.cuda.get_device_properties(0).total_memory / 1e9
+        if vram >= 16:
+            return 0    # 3090/4090: no tiling
+        elif vram >= 10:
+            return 512
+        else:
+            return 256  # 4060 8GB etc.
+    if device == "mps":
+        return 512      # unified memory, conservative default
+    return 128          # CPU
+
+
 def build_esrgan(scale: int):
     from basicsr.archs.rrdbnet_arch import RRDBNet
     from realesrgan import RealESRGANer
@@ -35,6 +61,10 @@ def build_esrgan(scale: int):
             "Run setup_weights.py to download model weights."
         )
 
+    device, use_half, label = detect_device()
+    tile = auto_tile(device)
+    print(f"  Device: {device} ({label})  tile={'off' if tile == 0 else tile}  fp16={use_half}")
+
     model = RRDBNet(
         num_in_ch=3, num_out_ch=3,
         num_feat=64, num_block=23, num_grow_ch=32,
@@ -44,10 +74,10 @@ def build_esrgan(scale: int):
         scale=scale,
         model_path=weight,
         model=model,
-        tile=0,        # 3090 has 24GB, no tiling needed
+        tile=tile,
         tile_pad=10,
-        half=True,     # fp16: ~2x speed, negligible quality loss
-        device="cuda",
+        half=use_half,
+        device=device,
     )
     return upsampler
 
