@@ -1,0 +1,7 @@
+# Install PyTorch separately:
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+basicsr>=1.4.2
+realesrgan>=0.3.0
+gfpgan>=1.3.8
+opencv-python>=4.7.0

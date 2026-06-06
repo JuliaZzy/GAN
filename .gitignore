@@ -1,0 +1,25 @@
+# Model weights (too large for git)
+weights/
+
+# I/O directories
+input/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Conda
+*.conda
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
