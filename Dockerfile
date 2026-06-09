@@ -1,17 +1,21 @@
-FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+FROM docker.m.daocloud.io/pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
 WORKDIR /app
 
 # OpenCV runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libglib2.0-0 libsm6 libxext6 libxrender1 libgomp1 \
+        libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # requirements.txt excludes torch (already in base image)
 COPY requirements.txt .
+ENV PIP_DEFAULT_TIMEOUT=300
+ENV PIP_RETRIES=10
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ENV PIP_EXTRA_INDEX_URL=https://pypi.org/simple
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY enhance.py setup_weights.py ./
+COPY enhance.py setup_weights.py upscale_sd.py ./
 
 # weights / input / output are mounted at runtime (see docker-compose.yml)
 VOLUME ["/app/weights", "/app/input", "/app/output"]
