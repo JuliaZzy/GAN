@@ -19,11 +19,8 @@ services:
   upscale-sd:
     build: .
     image: image-enhance:latest
-    entrypoint: python
-    command: >
-      upscale_sd.py
-      -i /app/input
-      -o /app/output
+    entrypoint: ["python", "upscale_sd.py"]
+    command: ["-i", "/app/input", "-o", "/app/output"]
     deploy:
       resources:
         reservations:
