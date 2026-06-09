@@ -1,7 +1,15 @@
 # Install PyTorch separately:
 # pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
+numpy<2
 basicsr>=1.4.2
 realesrgan>=0.3.0
 gfpgan>=1.3.8
 opencv-python>=4.7.0
+
+# SDXL tile upscaler
+diffusers>=0.27.0
+transformers>=4.37.0
+accelerate>=0.26.0
+safetensors>=0.4.0
+Pillow>=10.0.0

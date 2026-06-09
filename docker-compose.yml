@@ -1,4 +1,5 @@
 services:
+  # Real-ESRGAN (4060 / quick jobs)
   enhance:
     build: .
     image: image-enhance:latest
@@ -14,10 +15,34 @@ services:
       - ./input:/app/input
       - ./output:/app/output
 
-  # One-time setup: download model weights into ./weights/
+  # SDXL + ControlNet Tile (3090 / best quality)
+  upscale-sd:
+    build: .
+    image: image-enhance:latest
+    entrypoint: python
+    command: >
+      upscale_sd.py
+      -i /app/input
+      -o /app/output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - hf-cache:/root/.cache/huggingface   # models cached across runs
+
+  # One-time setup: download Real-ESRGAN weights
   setup:
     image: image-enhance:latest
     entrypoint: python
     command: setup_weights.py
     volumes:
       - ./weights:/app/weights
+
+volumes:
+  hf-cache:   # named volume — persists HuggingFace model downloads
